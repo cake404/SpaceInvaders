@@ -4,13 +4,11 @@ import java.util.ArrayList;
 import java.util.Observable;
 import java.util.PriorityQueue;
 
-import components.Collide;
-import components.Component;
-import components.Input;
-import components.Move;
-import components.PlaybackControls;
-import components.PlayerControls;
-import components.Render;
+import default_components.Collide;
+import default_components.Component;
+import default_components.Input;
+import default_components.Move;
+import default_components.Render;
 import game_objects.GameObject;
 import space_invaders_components.Spawn;
 
@@ -35,7 +33,6 @@ public class EventManager {
     private final EventHandlerList                   inputListeners        = new EventHandlerList();
     private final EventHandlerList                   movers                = new EventHandlerList();
     private final EventHandlerList                   colliders             = new EventHandlerList();
-    private final EventHandlerList                   playbackAlterers      = new EventHandlerList();
     private final EventHandlerList                   spawners              = new EventHandlerList();
 
     private static final PriorityQueue<TimeLineItem> timeLine              = new PriorityQueue<TimeLineItem>();
@@ -59,9 +56,6 @@ public class EventManager {
             else if ( c instanceof Collide ) {
                 colliders.addObserver( c );
             }
-            else if ( c instanceof PlaybackControls ) {
-                playbackAlterers.addObserver( c );
-            }
             else if ( c instanceof Spawn ) {
                 spawners.addObserver( c );
             }
@@ -76,17 +70,11 @@ public class EventManager {
             if ( c instanceof Render ) {
                 renderers.deleteObserver( c );
             }
-            else if ( c instanceof PlayerControls ) {
-                inputListeners.deleteObserver( c );
-            }
             else if ( c instanceof Move ) {
                 movers.deleteObserver( c );
             }
             else if ( c instanceof Collide ) {
                 colliders.deleteObserver( c );
-            }
-            else if ( c instanceof PlaybackControls ) {
-                playbackAlterers.deleteObserver( c );
             }
             else if ( c instanceof Spawn ) {
                 spawners.deleteObserver( c );
@@ -144,9 +132,6 @@ public class EventManager {
                 break;
             case E_TYPE_COLLISION:
                 colliders.notifyHandlers( arguments );
-                break;
-            case E_TYPE_ALTER_PLAYBACK:
-                playbackAlterers.notifyHandlers( arguments );
                 break;
             case E_TYPE_SPAWN:
                 spawners.notifyHandlers( arguments );

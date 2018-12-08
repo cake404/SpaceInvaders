@@ -1,4 +1,4 @@
-package components;
+package default_components;
 
 import java.util.Observable;
 

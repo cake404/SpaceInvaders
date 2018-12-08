@@ -1,4 +1,4 @@
-package components;
+package default_components;
 
 public abstract class Input extends Component {
 

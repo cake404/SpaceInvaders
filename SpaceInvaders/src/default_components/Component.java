@@ -1,4 +1,4 @@
-package components;
+package default_components;
 
 import java.io.Serializable;
 import java.util.Observer;

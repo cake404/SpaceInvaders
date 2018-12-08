@@ -2,7 +2,7 @@ package space_invaders_components;
 
 import java.util.Observable;
 
-import components.Input;
+import default_components.Input;
 
 public class PlayerInput extends Input {
 

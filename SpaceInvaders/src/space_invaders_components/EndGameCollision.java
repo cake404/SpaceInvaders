@@ -2,7 +2,7 @@ package space_invaders_components;
 
 import java.util.Observable;
 
-import components.Collide;
+import default_components.Collide;
 
 public class EndGameCollision extends Collide {
 

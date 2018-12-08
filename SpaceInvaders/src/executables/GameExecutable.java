@@ -4,10 +4,10 @@ import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 
-import components.HardCollision;
-import components.Input;
-import components.Render;
-import components.SoftCollision;
+import default_components.HardCollision;
+import default_components.Input;
+import default_components.Render;
+import default_components.SoftCollision;
 import game_objects.GameObject;
 import managers.EventManager;
 import managers.GameObjectManager;

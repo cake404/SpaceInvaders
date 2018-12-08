@@ -2,7 +2,7 @@ package space_invaders_components;
 
 import java.util.Observable;
 
-import components.Move;
+import default_components.Move;
 
 public class AlienMovement extends Move {
 

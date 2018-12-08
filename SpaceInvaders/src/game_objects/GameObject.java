@@ -4,8 +4,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import components.Component;
-import components.Render;
+import default_components.Component;
+import default_components.Render;
 
 public class GameObject implements Serializable {
 

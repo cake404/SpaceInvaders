@@ -2,7 +2,7 @@ package space_invaders_components;
 
 import java.util.Observable;
 
-import components.Render;
+import default_components.Render;
 import game_objects.GameObject;
 import managers.EventManager;
 import managers.GameObjectManager;

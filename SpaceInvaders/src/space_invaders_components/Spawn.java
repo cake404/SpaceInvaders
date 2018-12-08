@@ -1,6 +1,6 @@
 package space_invaders_components;
 
-import components.Component;
+import default_components.Component;
 
 public abstract class Spawn extends Component {
 
