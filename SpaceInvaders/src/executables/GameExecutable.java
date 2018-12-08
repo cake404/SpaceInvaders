@@ -11,6 +11,7 @@ import default_components.SoftCollision;
 import game_objects.GameObject;
 import managers.EventManager;
 import managers.GameObjectManager;
+import managers.ScriptManager;
 import managers.TimeManager;
 import processing.core.PApplet;
 import space_invaders_components.AlienMovement;
@@ -25,7 +26,8 @@ public class GameExecutable extends PApplet {
     private static int                     width         = 500;
     private static int                     height        = 600;
     private static int                     enemyRows     = 2;
-    private static int                     enemiesPerRow = 4;
+    private static int                     enemiesPerRow = 5;
+    private static double                  alienSpeed    = 1;
 
     private static final GameObjectManager aliens        = new GameObjectManager();
     private static final GameObjectManager bullets       = new GameObjectManager();
@@ -35,13 +37,17 @@ public class GameExecutable extends PApplet {
 
     private static final long              ticRate       = 16;
     private static final TimeManager       timeManager   = new TimeManager( ticRate );
-
+    private static final ScriptManager     scriptManager = new ScriptManager();
     private static final EventManager      eventManager  = new EventManager();
 
     private static volatile boolean        winGame       = false;
     private static volatile boolean        loseGame      = false;
 
     public static void main ( final String[] args ) {
+
+        // Load color changing script
+        scriptManager.loadScript( "scripts/change_color.js" );
+        scriptManager.bindArgument( "player", player );
 
         // Top Wall
         final GameObject topWall = new GameObject();
@@ -105,7 +111,7 @@ public class GameExecutable extends PApplet {
                 enemy.setHeight( ( width / enemiesPerRow ) * .25 );
                 enemy.setXpos( ( width / enemiesPerRow ) * j );
                 enemy.setYpos( ( height / 3 ) - ( enemy.getHeight() * i * 2 ) );
-                enemy.setXvel( 1 );
+                enemy.setXvel( alienSpeed );
                 enemy.addComponent( new Render() );
                 enemy.addComponent( new DeathCollision() );
 
@@ -136,11 +142,11 @@ public class GameExecutable extends PApplet {
             final long currentTic = timeManager.getRelativeTime();
 
             if ( currentTic != baseTic ) {
-                eventManager.raiseAndHandle( EventManager.E_TYPE_MOVEMENT );
+                eventManager.raiseAndHandleWithScript( EventManager.E_TYPE_MOVEMENT );
 
                 detectCollision();
 
-                eventManager.handleEvents();
+                eventManager.handleEventsWithScript();
 
                 baseTic = timeManager.getRelativeTime();
             }
@@ -245,8 +251,14 @@ public class GameExecutable extends PApplet {
                     new Object[] { bullets, eventManager, timeManager.getRelativeTime() }, EventManager.PRIORITY_HIGH,
                     timeManager.getRelativeTime() );
         }
-        eventManager.raise( EventManager.E_TYPE_INPUT, new Object[] { Input.KEY_PRESSED, key },
-                EventManager.PRIORITY_LOW, timeManager.getRelativeTime() );
+
+        if ( key == 'p' ) {
+            scriptManager.executeScript();
+        }
+        else {
+            eventManager.raise( EventManager.E_TYPE_INPUT, new Object[] { Input.KEY_PRESSED, key },
+                    EventManager.PRIORITY_LOW, timeManager.getRelativeTime() );
+        }
     }
 
     @Override
@@ -262,7 +274,7 @@ public class GameExecutable extends PApplet {
             text( "Sorry!\nYou Lost!", width / 4, height / 4 );
         }
         else {
-            eventManager.raiseAndHandle( EventManager.E_TYPE_RENDER, new Object[] { this } );
+            eventManager.raiseAndHandleWithScript( EventManager.E_TYPE_RENDER, new Object[] { this } );
         }
     }
 

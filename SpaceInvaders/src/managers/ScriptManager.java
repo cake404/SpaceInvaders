@@ -11,22 +11,22 @@ import javax.script.ScriptException;
 public class ScriptManager {
 
     /* The javax.script JavaScript engine used by this class. */
-    private static ScriptEngine js_engine    = new ScriptEngineManager().getEngineByName( "JavaScript" );
+    private final ScriptEngine js_engine    = new ScriptEngineManager().getEngineByName( "JavaScript" );
     /* The Invocable reference to the engine. */
-    private static Invocable    js_invocable = (Invocable) js_engine;
+    private final Invocable    js_invocable = (Invocable) js_engine;
 
     /**
      * Used to bind the provided object to the name in the scope of the scripts
      * being executed by this engine.
      */
-    public static void bindArgument ( final String name, final Object obj ) {
+    public void bindArgument ( final String name, final Object obj ) {
         js_engine.put( name, obj );
     }
 
     /**
      * Will load the script source from the provided filename.
      */
-    public static void loadScript ( final String script_name ) {
+    public void loadScript ( final String script_name ) {
         try {
             js_engine.eval( new java.io.FileReader( script_name ) );
         }
@@ -42,7 +42,7 @@ public class ScriptManager {
      * Will invoke the "update" function of the script loaded by this engine
      * without any parameters.
      */
-    public static void executeScript () {
+    public void executeScript () {
         try {
             js_invocable.invokeFunction( "update" );
         }
@@ -58,7 +58,7 @@ public class ScriptManager {
      * Will invoke the "update" function of the script loaded by this engine
      * with the provided list of parameters.
      */
-    public static void executeScript ( final Object... args ) {
+    public void executeScript ( final Object... args ) {
         try {
             js_invocable.invokeFunction( "update", args );
         }
