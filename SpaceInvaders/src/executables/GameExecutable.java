@@ -6,13 +6,17 @@ import java.util.ArrayList;
 
 import components.HardCollision;
 import components.Input;
+import components.Render;
+import components.SoftCollision;
 import game_objects.GameObject;
 import managers.EventManager;
 import managers.GameObjectManager;
-import managers.ScriptManager;
 import managers.TimeManager;
 import processing.core.PApplet;
+import space_invaders_components.AlienMovement;
 import space_invaders_components.BulletShoot;
+import space_invaders_components.DeathCollision;
+import space_invaders_components.EndGameCollision;
 import space_invaders_components.PlayerInput;
 import space_invaders_components.PlayerMovement;
 
@@ -37,11 +41,40 @@ public class GameExecutable extends PApplet {
         final GameObject topWall = new GameObject();
         topWall.setWidth( width );
         topWall.setHeight( height / 20 );
-        topWall.setYpos( topWall.getHeight() );
+        topWall.setYpos( -topWall.getHeight() );
         topWall.addComponent( new HardCollision() );
 
         objectManager.add( topWall );
         eventManager.register( topWall );
+
+        // Left Wall
+        final GameObject leftWall = new GameObject();
+        leftWall.setWidth( width / 20 );
+        leftWall.setHeight( height );
+        leftWall.setXpos( -leftWall.getWidth() );
+        leftWall.addComponent( new HardCollision() );
+
+        objectManager.add( leftWall );
+        eventManager.register( leftWall );
+
+        // Right wall
+        final GameObject rightWall = new GameObject();
+        rightWall.setWidth( width / 20 );
+        rightWall.setHeight( height );
+        rightWall.setXpos( width );
+        rightWall.addComponent( new HardCollision() );
+
+        objectManager.add( rightWall );
+        eventManager.register( rightWall );
+
+        final GameObject floor = new GameObject();
+        floor.setWidth( width );
+        floor.setHeight( height / 20 );
+        floor.setYpos( height - floor.getHeight() );
+        floor.addComponent( new EndGameCollision() );
+
+        objectManager.add( floor );
+        eventManager.register( floor );
 
         // Initialize player
         final GameObject player = new GameObject();
@@ -49,25 +82,33 @@ public class GameExecutable extends PApplet {
         player.setHeight( width / 15 );
         player.setXpos( ( width / 2 ) - ( player.getWidth() / 2 ) );
         player.setYpos( height - player.getHeight() - ( height / 20 ) );
+        player.setColor( 50, 120, 200 );
         player.addComponent( new PlayerMovement() );
+        player.addComponent( new SoftCollision() );
         player.addComponent( new PlayerInput() );
         player.addComponent( new BulletShoot() );
+        player.addComponent( new Render() );
 
         playerObjectId = player.getId();
         objectManager.add( player );
         eventManager.register( player );
 
         // Initialize all enemies
-        ScriptManager.loadScript( "scripts/initialize_enemies.js" );
-
         for ( int i = 0; i < enemyRows; i++ ) {
             for ( int j = 0; j < enemiesPerRow; j++ ) {
                 final GameObject enemy = new GameObject();
 
-                enemy.setWidth( ( width / enemiesPerRow ) * .4 );
+                enemy.setWidth( ( width / enemiesPerRow ) * .5 );
                 enemy.setHeight( ( width / enemiesPerRow ) * .25 );
                 enemy.setXpos( ( width / enemiesPerRow ) * j );
                 enemy.setYpos( ( height / 3 ) - ( enemy.getHeight() * i * 2 ) );
+                enemy.setXvel( .5 );
+                enemy.addComponent( new Render() );
+                enemy.addComponent( new DeathCollision() );
+
+                final double sideDistance = ( width / enemiesPerRow ) - enemy.getWidth();
+                final double downDistance = enemy.getHeight() * 2;
+                enemy.addComponent( new AlienMovement( sideDistance, downDistance, enemy.getXpos() ) );
 
                 objectManager.add( enemy );
                 eventManager.register( enemy );
@@ -93,6 +134,8 @@ public class GameExecutable extends PApplet {
 
             if ( currentTic != baseTic ) {
                 eventManager.raiseAndHandle( EventManager.E_TYPE_MOVEMENT );
+
+                detectCollision();
 
                 eventManager.handleEvents();
 
@@ -150,7 +193,8 @@ public class GameExecutable extends PApplet {
     @Override
     public void keyPressed () {
         if ( key == ' ' ) {
-            eventManager.raise( EventManager.E_TYPE_SPAWN, new Object[] { objectManager, eventManager },
+            eventManager.raise( EventManager.E_TYPE_SPAWN,
+                    new Object[] { objectManager, eventManager, timeManager.getRelativeTime() },
                     EventManager.PRIORITY_HIGH, timeManager.getRelativeTime() );
         }
         eventManager.raise( EventManager.E_TYPE_INPUT, new Object[] { Input.KEY_PRESSED, key, objectManager },
@@ -161,10 +205,7 @@ public class GameExecutable extends PApplet {
     public void draw () {
         background( 120, 120, 120 );
 
-        for ( final GameObject enemy : objectManager.getGameObjects() ) {
-            rect( (float) enemy.getXpos(), (float) enemy.getYpos(), (float) enemy.getWidth(),
-                    (float) enemy.getHeight() );
-        }
+        eventManager.raiseAndHandle( EventManager.E_TYPE_RENDER, new Object[] { this } );
     }
 
 }

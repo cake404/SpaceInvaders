@@ -223,6 +223,15 @@ public class EventManager {
 
         @Override
         public int compareTo ( final TimeLineItem tli ) {
+
+            if ( timeStamp > tli.timeStamp ) {
+                return 1;
+            }
+
+            if ( timeStamp < tli.timeStamp ) {
+                return -1;
+            }
+
             if ( priority > tli.priority ) {
                 return 1;
             }
@@ -230,7 +239,6 @@ public class EventManager {
             if ( priority < tli.priority ) {
                 return -1;
             }
-
             return 0;
         }
 
