@@ -10,7 +10,7 @@ public abstract class Component implements Observer, Serializable {
      *
      */
     private static final long serialVersionUID = 1L;
-    GameObject                parent;
+    protected GameObject      parent;
 
     public void setParentGameObject ( final GameObject go ) {
         parent = go;

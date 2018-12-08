@@ -21,7 +21,6 @@ import components.PlaybackControls;
 import components.PlayerControls;
 import components.Render;
 import components.SoftCollision;
-import components.Spawn;
 import game_objects.GameObject;
 import game_objects.RenderObject;
 import managers.EventManager;
@@ -204,7 +203,7 @@ public class Server implements Serializable, Runnable {
         player.addComponent( new NormalMovement() );
         player.addComponent( new SoftCollision() );
         player.addComponent( new PlaybackControls() );
-        player.addComponent( new Spawn( spawnPoints ) );
+        // player.addComponent( new Spawn( spawnPoints ) );
 
         eventManager.register( player );
 

@@ -11,8 +11,8 @@ import components.Move;
 import components.PlaybackControls;
 import components.PlayerControls;
 import components.Render;
-import components.Spawn;
 import game_objects.GameObject;
+import space_invaders_components.Spawn;
 
 public class EventManager {
 
