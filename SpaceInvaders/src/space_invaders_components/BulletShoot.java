@@ -19,7 +19,7 @@ public class BulletShoot extends Spawn {
     @Override
     public void update ( final Observable o, final Object arg ) {
         final Object[] arguments = (Object[]) arg;
-        final GameObjectManager gom = (GameObjectManager) arguments[0];
+        final GameObjectManager bullets = (GameObjectManager) arguments[0];
         final EventManager em = (EventManager) arguments[1];
         final long currentTime = (long) arguments[2];
 
@@ -41,7 +41,7 @@ public class BulletShoot extends Spawn {
         bullet.addComponent( new DeathCollision() );
         bullet.addComponent( new Render() );
 
-        gom.add( bullet );
+        bullets.add( bullet );
         em.register( bullet );
 
     }

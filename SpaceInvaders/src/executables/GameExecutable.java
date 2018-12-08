@@ -22,18 +22,24 @@ import space_invaders_components.PlayerMovement;
 
 public class GameExecutable extends PApplet {
 
-    private static int               width         = 500;
-    private static int               height        = 600;
-    private static int               enemyRows     = 2;
-    private static int               enemiesPerRow = 4;
+    private static int                     width         = 500;
+    private static int                     height        = 600;
+    private static int                     enemyRows     = 2;
+    private static int                     enemiesPerRow = 4;
 
-    private static GameObjectManager objectManager = new GameObjectManager();
-    private static int               playerObjectId;
+    private static final GameObjectManager aliens        = new GameObjectManager();
+    private static final GameObjectManager bullets       = new GameObjectManager();
+    private static final GameObjectManager walls         = new GameObjectManager();
+    private static final GameObject        player        = new GameObject();
+    private static final GameObject        floor         = new GameObject();
 
-    private static long              ticRate       = 16;
-    private static TimeManager       timeManager   = new TimeManager( ticRate );
+    private static final long              ticRate       = 16;
+    private static final TimeManager       timeManager   = new TimeManager( ticRate );
 
-    private static EventManager      eventManager  = new EventManager();
+    private static final EventManager      eventManager  = new EventManager();
+
+    private static volatile boolean        winGame       = false;
+    private static volatile boolean        loseGame      = false;
 
     public static void main ( final String[] args ) {
 
@@ -43,8 +49,9 @@ public class GameExecutable extends PApplet {
         topWall.setHeight( height / 20 );
         topWall.setYpos( -topWall.getHeight() );
         topWall.addComponent( new HardCollision() );
+        topWall.addComponent( new Render() );
 
-        objectManager.add( topWall );
+        walls.add( topWall );
         eventManager.register( topWall );
 
         // Left Wall
@@ -54,7 +61,7 @@ public class GameExecutable extends PApplet {
         leftWall.setXpos( -leftWall.getWidth() );
         leftWall.addComponent( new HardCollision() );
 
-        objectManager.add( leftWall );
+        walls.add( leftWall );
         eventManager.register( leftWall );
 
         // Right wall
@@ -64,20 +71,18 @@ public class GameExecutable extends PApplet {
         rightWall.setXpos( width );
         rightWall.addComponent( new HardCollision() );
 
-        objectManager.add( rightWall );
+        walls.add( rightWall );
         eventManager.register( rightWall );
 
-        final GameObject floor = new GameObject();
         floor.setWidth( width );
         floor.setHeight( height / 20 );
-        floor.setYpos( height - floor.getHeight() );
+        floor.setYpos( height );
         floor.addComponent( new EndGameCollision() );
+        floor.addComponent( new Render() );
 
-        objectManager.add( floor );
         eventManager.register( floor );
 
         // Initialize player
-        final GameObject player = new GameObject();
         player.setWidth( width / 10 );
         player.setHeight( width / 15 );
         player.setXpos( ( width / 2 ) - ( player.getWidth() / 2 ) );
@@ -89,8 +94,6 @@ public class GameExecutable extends PApplet {
         player.addComponent( new BulletShoot() );
         player.addComponent( new Render() );
 
-        playerObjectId = player.getId();
-        objectManager.add( player );
         eventManager.register( player );
 
         // Initialize all enemies
@@ -102,7 +105,7 @@ public class GameExecutable extends PApplet {
                 enemy.setHeight( ( width / enemiesPerRow ) * .25 );
                 enemy.setXpos( ( width / enemiesPerRow ) * j );
                 enemy.setYpos( ( height / 3 ) - ( enemy.getHeight() * i * 2 ) );
-                enemy.setXvel( .5 );
+                enemy.setXvel( 1 );
                 enemy.addComponent( new Render() );
                 enemy.addComponent( new DeathCollision() );
 
@@ -110,7 +113,7 @@ public class GameExecutable extends PApplet {
                 final double downDistance = enemy.getHeight() * 2;
                 enemy.addComponent( new AlienMovement( sideDistance, downDistance, enemy.getXpos() ) );
 
-                objectManager.add( enemy );
+                aliens.add( enemy );
                 eventManager.register( enemy );
             }
 
@@ -146,34 +149,80 @@ public class GameExecutable extends PApplet {
 
     public static void detectCollision () {
 
-        final ArrayList<Integer> ids = objectManager.getIds();
+        final ArrayList<Integer> wallsIds = walls.getIds();
+        final ArrayList<Integer> bulletIds = bullets.getIds();
+        final ArrayList<Integer> alienIds = aliens.getIds();
 
-        for ( final int id1 : ids ) {
-            for ( final int id2 : ids ) {
-                if ( id1 == id2 ) {
-                    continue;
+        // Wall collision with player
+        for ( final int wallId : wallsIds ) {
+
+            final GameObject wall = walls.get( wallId );
+            final Rectangle2D wallRect = new Rectangle.Double( wall.getXpos(), wall.getYpos(), wall.getWidth(),
+                    wall.getHeight() );
+            final Rectangle2D playerRect = new Rectangle.Double( player.getXpos(), player.getYpos(), player.getWidth(),
+                    player.getHeight() );
+
+            if ( wallRect.intersects( playerRect ) ) {
+                eventManager.raise( EventManager.E_TYPE_COLLISION, new Object[] { player, wall },
+                        EventManager.PRIORITY_HIGH, timeManager.getRelativeTime() );
+            }
+
+        }
+
+        // bullet collision with aliens and walls
+        for ( final int bulletId : bulletIds ) {
+            final GameObject bullet = bullets.get( bulletId );
+
+            final Rectangle2D bulletRect = new Rectangle.Double( bullet.getXpos(), bullet.getYpos(), bullet.getWidth(),
+                    bullet.getHeight() );
+
+            // Bullet collide with wall?
+            for ( final int wallId : wallsIds ) {
+                final GameObject wall = walls.get( wallId );
+                final Rectangle2D wallRect = new Rectangle.Double( wall.getXpos(), wall.getYpos(), wall.getWidth(),
+                        wall.getHeight() );
+                if ( wallRect.intersects( bulletRect ) ) {
+                    eventManager.raise( EventManager.E_TYPE_COLLISION, new Object[] { bullet, bullets, eventManager },
+                            EventManager.PRIORITY_HIGH, timeManager.getRelativeTime() );
                 }
+            }
 
-                final GameObject go1 = objectManager.get( id1 );
-                final GameObject go2 = objectManager.get( id2 );
+            // Bullet collide with alien?
+            for ( final int alienId : alienIds ) {
+                final GameObject alien = aliens.get( alienId );
+                final Rectangle2D alienRect = new Rectangle.Double( alien.getXpos(), alien.getYpos(), alien.getWidth(),
+                        alien.getHeight() );
 
-                if ( go1 == null || go2 == null ) {
-                    continue;
-                }
-
-                final Rectangle2D go1Rect = new Rectangle.Double( go1.getXpos(), go1.getYpos(), go1.getWidth(),
-                        go1.getHeight() );
-                final Rectangle2D go2Rect = new Rectangle.Double( go2.getXpos(), go2.getYpos(), go2.getWidth(),
-                        go2.getHeight() );
-
-                if ( go1Rect.intersects( go2Rect ) ) {
-                    eventManager.raise( EventManager.E_TYPE_COLLISION,
-                            new Object[] { go1, go2, objectManager, eventManager }, EventManager.PRIORITY_HIGH,
-                            timeManager.getRelativeTime() );
-
+                if ( alienRect.intersects( bulletRect ) ) {
+                    eventManager.raise( EventManager.E_TYPE_COLLISION, new Object[] { bullet, bullets, eventManager },
+                            EventManager.PRIORITY_HIGH, timeManager.getRelativeTime() );
+                    eventManager.raise( EventManager.E_TYPE_COLLISION, new Object[] { alien, aliens, eventManager },
+                            EventManager.PRIORITY_HIGH, timeManager.getRelativeTime() );
                 }
             }
         }
+
+        // alien collide with floor or player? - lose game
+        for ( final int alienId : alienIds ) {
+            final GameObject alien = aliens.get( alienId );
+            final Rectangle2D alienRect = new Rectangle.Double( alien.getXpos(), alien.getYpos(), alien.getWidth(),
+                    alien.getHeight() );
+            final Rectangle2D playerRect = new Rectangle.Double( player.getXpos(), player.getYpos(), player.getWidth(),
+                    player.getHeight() );
+            final Rectangle2D floorRect = new Rectangle.Double( floor.getXpos(), floor.getYpos(), floor.getWidth(),
+                    floor.getHeight() );
+
+            if ( !winGame && ( alienRect.intersects( playerRect ) || alienRect.intersects( floorRect ) ) ) {
+                loseGame = true;
+            }
+
+        }
+
+        // No aliens left? - win game
+        if ( !loseGame && aliens.getGameObjects().isEmpty() ) {
+            winGame = true;
+        }
+
     }
 
     @Override
@@ -184,9 +233,8 @@ public class GameExecutable extends PApplet {
     @Override
     public void keyReleased () {
 
-        eventManager.raise( EventManager.E_TYPE_INPUT,
-                new Object[] { Input.KEY_RELEASED, key, objectManager, eventManager }, EventManager.PRIORITY_LOW,
-                timeManager.getRelativeTime() );
+        eventManager.raise( EventManager.E_TYPE_INPUT, new Object[] { Input.KEY_RELEASED, key },
+                EventManager.PRIORITY_LOW, timeManager.getRelativeTime() );
 
     }
 
@@ -194,10 +242,10 @@ public class GameExecutable extends PApplet {
     public void keyPressed () {
         if ( key == ' ' ) {
             eventManager.raise( EventManager.E_TYPE_SPAWN,
-                    new Object[] { objectManager, eventManager, timeManager.getRelativeTime() },
-                    EventManager.PRIORITY_HIGH, timeManager.getRelativeTime() );
+                    new Object[] { bullets, eventManager, timeManager.getRelativeTime() }, EventManager.PRIORITY_HIGH,
+                    timeManager.getRelativeTime() );
         }
-        eventManager.raise( EventManager.E_TYPE_INPUT, new Object[] { Input.KEY_PRESSED, key, objectManager },
+        eventManager.raise( EventManager.E_TYPE_INPUT, new Object[] { Input.KEY_PRESSED, key },
                 EventManager.PRIORITY_LOW, timeManager.getRelativeTime() );
     }
 
@@ -205,7 +253,17 @@ public class GameExecutable extends PApplet {
     public void draw () {
         background( 120, 120, 120 );
 
-        eventManager.raiseAndHandle( EventManager.E_TYPE_RENDER, new Object[] { this } );
+        if ( winGame ) {
+            textSize( width / 20 );
+            text( "Congratulations!\nYou Won!", width / 4, height / 4 );
+        }
+        else if ( loseGame ) {
+            textSize( width / 20 );
+            text( "Sorry!\nYou Lost!", width / 4, height / 4 );
+        }
+        else {
+            eventManager.raiseAndHandle( EventManager.E_TYPE_RENDER, new Object[] { this } );
+        }
     }
 
 }

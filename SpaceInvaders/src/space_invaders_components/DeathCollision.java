@@ -23,8 +23,8 @@ public class DeathCollision extends Collide {
             return;
         }
 
-        final GameObjectManager gom = (GameObjectManager) arguments[2];
-        final EventManager em = (EventManager) arguments[3];
+        final GameObjectManager gom = (GameObjectManager) arguments[1];
+        final EventManager em = (EventManager) arguments[2];
 
         gom.remove( parent.getId() );
         em.deregister( parent );

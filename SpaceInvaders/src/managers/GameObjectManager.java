@@ -9,11 +9,11 @@ import game_objects.RenderObject;
 
 public class GameObjectManager {
 
-    public static final Hashtable<Integer, GameObject> gameObjects           = new Hashtable<Integer, GameObject>();
+    private final Hashtable<Integer, GameObject>  gameObjects           = new Hashtable<Integer, GameObject>();
 
-    private static Hashtable<Integer, GameObject>      savedFirstGameObjects = new Hashtable<Integer, GameObject>();
+    private static Hashtable<Integer, GameObject> savedFirstGameObjects = new Hashtable<Integer, GameObject>();
 
-    private static Hashtable<Integer, GameObject>      savedLastGameObjects  = new Hashtable<Integer, GameObject>();
+    private static Hashtable<Integer, GameObject> savedLastGameObjects  = new Hashtable<Integer, GameObject>();
 
     public GameObjectManager () {
 
