@@ -18,4 +18,9 @@ Step 2 - Type in this command once you have found the jar file to start the game
 	'd' - move right
 	' ' - Shoot
 	'p' - change color of player
+	
+	
+# DEMO
+
+![Demo of Space Invaders](https://i.imgur.com/ioD8sKe.gif)
 
